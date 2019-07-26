@@ -1,0 +1,11 @@
+service: sunflowers
+app: sunflower
+org: leo1994
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+functions:
+  hello:
+    handler: handler.hello
