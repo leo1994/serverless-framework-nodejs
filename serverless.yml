@@ -5,7 +5,39 @@ org: leo1994
 provider:
   name: aws
   runtime: nodejs10.x
+  # Permission to lambda function
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'sqs:SendMessage'
+      Resource:
+        # Return an attribute from a resource
+        Fn::GetAtt:
+          - LogsQueue
+          - Arn
 
 functions:
-  hello:
-    handler: handler.hello
+  createLog:
+    handler: src/createLog.handler
+    events:
+      # Create API Gateway
+      - http:
+          path: create_log_entry
+          method: post
+          request:
+            # Using JSON-Schema to validade request
+            schema:
+              application/json: ${file(schemas/log.json)}
+            # TODO: Catching Exceptions In Your Lambda Function
+    environment:
+      # Set process.env.SQS_URL as reference from SQS Resource
+      SQS_URL:
+        Ref: LogsQueue
+
+resources:
+  Resources:
+    # Create SQS Resource
+    LogsQueue:
+      Type: 'AWS::SQS::Queue'
+      Properties:
+        QueueName: 'LogsQueue'

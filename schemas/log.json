@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Log",
+  "description": "A log object to save on SQS",
+  "type": "object",
+
+  "properties": {
+    "origin": {
+      "description": "Reference the function that called the log, eg: login, logout, changePassword",
+      "type": "string"
+    },
+    "type": {
+      "description": "Log Type, must be: log | warn | error | custom",
+      "type": "string",
+      "enum": ["log", "warn", "error", "custom"]
+    },
+    "message": {
+      "description": "The log message, eg: login failed",
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "description": "Optional params, eg: { userId: 1 }",
+      "minProperties": 1
+    }
+  },
+  "required": ["origin", "type", "message"]
+}
