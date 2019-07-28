@@ -11,7 +11,27 @@ const TableName = process.env.DynamoDB_URL;
  */
 exports.handler = async (event, context) => {
   try {
-    const { type } = event.queryStringParameters;
+    const { queryStringParameters } = event;
+
+    if (!queryStringParameters || !queryStringParameters.type) {
+      return response(
+        {
+          status: false,
+          message: 'Querystring `type` is required'
+        },
+        500
+      );
+    } else if (
+      !['log', 'warn', 'error', 'custom'].includes(queryStringParameters.type)
+    ) {
+      return response(
+        {
+          status: false,
+          message: '`type` should be: log | warn | error | custom'
+        },
+        500
+      );
+    }
 
     const data = await DynamoDB.query({
       TableName,
@@ -21,7 +41,7 @@ exports.handler = async (event, context) => {
         '#type': 'type'
       },
       ExpressionAttributeValues: {
-        ':type': type
+        ':type': queryStringParameters.type
       }
     }).promise();
     return response(

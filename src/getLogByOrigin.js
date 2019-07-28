@@ -11,13 +11,21 @@ const TableName = process.env.DynamoDB_URL;
  */
 exports.handler = async (event, context) => {
   try {
-    const { origin } = event.queryStringParameters;
-
+    const queryStringParameters = event;
+    if (!queryStringParameters || !queryStringParameters.origin) {
+      return response(
+        {
+          status: false,
+          message: 'Querystring `origin` is required'
+        },
+        500
+      );
+    }
     const data = await DynamoDB.query({
       TableName,
       KeyConditionExpression: 'origin = :origin',
       ExpressionAttributeValues: {
-        ':origin': origin
+        ':origin': queryStringParameters.origin
       }
     }).promise();
     return response(
