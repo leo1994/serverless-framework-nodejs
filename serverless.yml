@@ -22,9 +22,16 @@ provider:
         - dynamodb:GetItem
         - dynamodb:PutItem
       Resource:
-        Fn::GetAtt:
-          - LogsTable
-          - Arn
+        - Fn::GetAtt:
+            - LogsTable
+            - Arn
+        - Fn::Join:
+            - '/'
+            - - Fn::GetAtt:
+                  - LogsTable
+                  - Arn
+              - 'index'
+              - 'typeIndex'
 
 functions:
   createLog:
@@ -43,6 +50,7 @@ functions:
       # Set process.env.SQS_URL as reference from SQS Resource
       SQS_URL:
         Ref: LogsQueue
+
   saveLog:
     handler: src/saveLog.handler
     events:
@@ -74,6 +82,23 @@ functions:
       # Set process.env.SQS_URL as reference from SQS Resource
       DynamoDB_URL:
         Ref: LogsTable
+
+  getLogByType:
+    handler: src/getLogByType.handler
+    events:
+      - http:
+          path: get_logs_by_type
+          method: get
+          request:
+            parameters:
+              # Pass optional and required parameters
+              querystrings:
+                type: true
+    environment:
+      # Set process.env.SQS_URL as reference from SQS Resource
+      DynamoDB_URL:
+        Ref: LogsTable
+
 resources:
   Resources:
     # Create SQS Resource
