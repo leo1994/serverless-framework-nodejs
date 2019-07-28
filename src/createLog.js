@@ -27,6 +27,6 @@ exports.handler = async (event, context) => {
       status: true
     });
   } catch (error) {
-    return response({ status: false, error }, 500);
+    return response({ status: false, error.message }, 500);
   }
 };

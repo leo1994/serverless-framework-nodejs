@@ -9,7 +9,7 @@ provider:
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
-        - 'sqs:SendMessage'
+        - sqs:SendMessage
       Resource:
         # Return an attribute from a resource
         Fn::GetAtt:
@@ -17,7 +17,10 @@ provider:
           - Arn
     - Effect: 'Allow'
       Action:
-        - 'dynamodb:PutItem'
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
       Resource:
         Fn::GetAtt:
           - LogsTable
@@ -55,6 +58,22 @@ functions:
       # Set process.env.SQS_URL as reference from SQS Resource
       DynamoDB_URL:
         Ref: LogsTable
+
+  getLogByOrigin:
+    handler: src/getLogByOrigin.handler
+    events:
+      - http:
+          path: get_logs_by_origin
+          method: get
+          request:
+            parameters:
+              # Pass optional and required parameters
+              querystrings:
+                origin: true
+    environment:
+      # Set process.env.SQS_URL as reference from SQS Resource
+      DynamoDB_URL:
+        Ref: LogsTable
 resources:
   Resources:
     # Create SQS Resource
@@ -67,12 +86,30 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       Properties:
         AttributeDefinitions:
-          - AttributeName: 'logId'
-            AttributeType: 'S'
+          - AttributeName: origin
+            AttributeType: S
+          - AttributeName: type
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: N
         KeySchema:
-          - AttributeName: 'logId'
-            KeyType: 'HASH'
+          - AttributeName: origin
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: 'LogsTable'
+        GlobalSecondaryIndexes:
+          - IndexName: typeIndex
+            KeySchema:
+              - AttributeName: type
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
