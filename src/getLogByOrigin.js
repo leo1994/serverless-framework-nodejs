@@ -11,6 +11,9 @@ const TableName = process.env.DynamoDB_URL;
  */
 exports.handler = async (event, context) => {
   try {
+    /**
+     * Verify if queryString exist
+     */
     const queryStringParameters = event;
     if (!queryStringParameters || !queryStringParameters.origin) {
       return response(
@@ -21,6 +24,10 @@ exports.handler = async (event, context) => {
         500
       );
     }
+
+    /**
+     * Query for data in dynamoDB
+     */
     const data = await DynamoDB.query({
       TableName,
       KeyConditionExpression: 'origin = :origin',
@@ -28,6 +35,7 @@ exports.handler = async (event, context) => {
         ':origin': queryStringParameters.origin
       }
     }).promise();
+
     return response(
       {
         status: true,

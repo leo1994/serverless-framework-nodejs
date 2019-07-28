@@ -11,6 +11,9 @@ const TableName = process.env.DynamoDB_URL;
  */
 exports.handler = async (event, context) => {
   try {
+    /**
+     * Verify if queryString exist and if value is valid
+     */
     const { queryStringParameters } = event;
 
     if (!queryStringParameters || !queryStringParameters.type) {
@@ -33,6 +36,9 @@ exports.handler = async (event, context) => {
       );
     }
 
+    /**
+     * Query for data in dynamoDB
+     */
     const data = await DynamoDB.query({
       TableName,
       IndexName: 'typeIndex',
