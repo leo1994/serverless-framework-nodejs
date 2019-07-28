@@ -14,8 +14,8 @@ exports.handler = async (event, context) => {
     /**
      * Verify if queryString exist
      */
-    const queryStringParameters = event;
-    if (!queryStringParameters || !queryStringParameters.origin) {
+    const { queryStringParameters } = event;
+    if (!queryStringParameters || !queryStringParameters['origin']) {
       return response(
         {
           status: false,
