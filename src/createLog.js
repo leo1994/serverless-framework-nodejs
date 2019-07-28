@@ -1,8 +1,13 @@
 const AWS = require('aws-sdk');
-const SQS = new AWS.SQS({
-  region: 'us-east-1'
-});
 
+const { response } = require('./helper');
+
+const SQS = new AWS.SQS();
+
+const QueueUrl = process.env.SQS_URL;
+/**
+ * This function create a new log and send to queue
+ */
 exports.handler = async (event, context) => {
   try {
     /**
@@ -15,22 +20,13 @@ exports.handler = async (event, context) => {
      */
     await SQS.sendMessage({
       MessageBody: JSON.stringify({ origin, type, message, params }),
-      QueueUrl: process.env.SQS_URL
+      QueueUrl
     }).promise();
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        status: true
-      })
-    };
+    return response({
+      status: true
+    });
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        status: false,
-        message: JSON.stringify({ error })
-      })
-    };
+    return response({ status: false, error }, 500);
   }
 };

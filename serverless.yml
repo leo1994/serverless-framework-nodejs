@@ -15,6 +15,13 @@ provider:
         Fn::GetAtt:
           - LogsQueue
           - Arn
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:PutItem'
+      Resource:
+        Fn::GetAtt:
+          - LogsTable
+          - Arn
 
 functions:
   createLog:
@@ -33,7 +40,21 @@ functions:
       # Set process.env.SQS_URL as reference from SQS Resource
       SQS_URL:
         Ref: LogsQueue
-
+  saveLog:
+    handler: src/saveLog.handler
+    events:
+      - sqs:
+          # effects how many SQS messages will be included in a single Lambda invocation.
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - LogsQueue
+              - Arn
+          enable: true
+    environment:
+      # Set process.env.SQS_URL as reference from SQS Resource
+      DynamoDB_URL:
+        Ref: LogsTable
 resources:
   Resources:
     # Create SQS Resource
@@ -41,3 +62,17 @@ resources:
       Type: 'AWS::SQS::Queue'
       Properties:
         QueueName: 'LogsQueue'
+    # Create DynamoDB Resource
+    LogsTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: 'logId'
+            AttributeType: 'S'
+        KeySchema:
+          - AttributeName: 'logId'
+            KeyType: 'HASH'
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: 'LogsTable'
