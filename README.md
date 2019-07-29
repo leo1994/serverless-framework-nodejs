@@ -28,3 +28,4 @@ Just run `serverless deploy` or `sls deploy`, this will generate all resources (
 
 - [ ] Resolve concurrency
 - [ ] Improve erro handling 
+- [ ] Change route name
